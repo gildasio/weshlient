@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import binascii
 import readline
 
 from argparse import ArgumentParser
@@ -24,6 +25,8 @@ def command_cat(command=''):
         print(b64decode(filecontent).decode())
     except UnicodeDecodeError:
         print("File " + filename + "seems to be a binary file, try 'catb' special command to force print it")
+    except binascii.Error:
+        print("File " + filename + "b64 encoded contains start/end tokens, use something like xxd")
 
 def command_catb(command=''):
     filename = command.split()[1]
@@ -33,7 +36,10 @@ def command_catb(command=''):
     if args.debug:
         debug(filecontent, 'file content')
 
-    print(b64decode(filecontent).decode('latin-1'))
+    try:
+        print(b64decode(filecontent).decode('latin-1'))
+    except binascii.Error:
+        print("File " + filename + "b64 encoded contains start/end tokens, use something like xxd")
 
 def command_cd(command=''):
     global cur_dir
