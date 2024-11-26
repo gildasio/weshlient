@@ -10,6 +10,10 @@ just need to create a text file containing an HTTP request and inform where
 
 https://github.com/user-attachments/assets/eafcf666-4c52-4e28-a341-a03bba93fe89
 
+> In the case the above video does not works for you:
+
+[![asciicast](https://asciinema.org/a/q1eUYpO1GNYbEV2wta9CiIjGh.svg)](https://asciinema.org/a/q1eUYpO1GNYbEV2wta9CiIjGh)
+
 ## Installation
 
 Out of python's included batteries `Wshclient` only uses `requests`. Just
