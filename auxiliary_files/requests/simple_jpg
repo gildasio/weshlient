@@ -1,0 +1,5 @@
+POST /simple_jpg.php HTTP/1.1
+host: localhost:8000
+Content-Type: application/x-www-form-urlencoded
+
+c=INJECT

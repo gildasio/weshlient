@@ -1,0 +1,3 @@
+GET /simple_get.php?c=INJECT HTTP/1.1
+host: localhost:8000
+

