@@ -8,6 +8,8 @@ Web Shell Client
 just need to create a text file containing an HTTP request and inform where
 `Wshlient` inject the commands, then you can enjoy a shell.
 
+https://github.com/user-attachments/assets/eafcf666-4c52-4e28-a341-a03bba93fe89
+
 ## Installation
 
 Out of python's included batteries `Wshclient` only uses `requests`. Just
