@@ -17,7 +17,23 @@ def command_cat(command=''):
 
     filecontent = execute_command(request, 'base64 ' + filename)
 
-    print(b64decode(filecontent).decode())
+    if args.debug:
+        debug(filecontent, 'file content')
+
+    try:
+        print(b64decode(filecontent).decode())
+    except UnicodeDecodeError:
+        print("File " + filename + "seems to be a binary file, try 'catb' special command to force print it")
+
+def command_catb(command=''):
+    filename = command.split()[1]
+
+    filecontent = execute_command(request, 'base64 ' + filename)
+
+    if args.debug:
+        debug(filecontent, 'file content')
+
+    print(b64decode(filecontent).decode('latin-1'))
 
 def command_cd(command=''):
     global cur_dir
@@ -70,6 +86,7 @@ def command_upload(command=''):
 
 COMMANDS = {
     'cat': command_cat,
+    'catb': command_catb,
     'cd': command_cd,
     'clear': command_clear,
     'download': command_download,
