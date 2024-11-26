@@ -49,6 +49,16 @@ def request_parser(fd):
     else:
         request['url'] = b'http://' + request['headers'][b'host'] + request['path']
 
+    if args.injection_token.encode() in request['params']:
+        request['inject'] = 'params'
+    elif args.injection_token in request['body']:
+        request['inject'] = 'body'
+    else:
+        for k,v in request['headers'].items():
+            if args.injection_token_encode() in v:
+                request['inject'] = 'headers'
+                request['inject_header'] = k
+
     return request
 
 def execute_command(request, command):
@@ -57,12 +67,32 @@ def execute_command(request, command):
     elif command.split()[0] in COMMANDS:
         special_commands(command)
     else:
-        print(request)
-        print("TBD")
+        req = request.copy()
+        if req['inject'] == 'headers':
+            req['headers'] = request['headers'].copy()
+            req[req['inject']][req['inject_header']] = \
+                req[req['inject']][req['inject_header']].replace(args.injection_token.encode(),
+                                                                 command.encode())
+        else:
+            req[req['inject']] = \
+                req[req['inject']].replace(args.injection_token.encode(),
+                                           command.encode())
+
+        r = requests.request(req['method'],
+                             req['url'],
+                             headers=req['headers'],
+                             data=req['body'],
+                             params=req['params'])
+        print(r.text, end='')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("req", help="File containing raw http request", type=str)
+
+    parser.add_argument("-it", "--injection-token", type=str,
+                        help="Token to be replaced by commands (default: INJECT)",
+                        default='INJECT')
+
     args = parser.parse_args()
 
     with open(args.req, 'rb') as fd:
