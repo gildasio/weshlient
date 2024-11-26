@@ -13,7 +13,7 @@ def debug(string, msg='Debug'):
     print("[~] " + msg + ": ", end='')
     print(string)
 
-def command_cat(command=''):
+def command_cat(command='', encoding='utf-8'):
     filename = command.split()[1]
 
     filecontent = execute_command(request, 'base64 ' + filename)
@@ -22,24 +22,14 @@ def command_cat(command=''):
         debug(filecontent, 'file content')
 
     try:
-        print(b64decode(filecontent).decode())
+        print(b64decode(filecontent).decode(encoding))
     except UnicodeDecodeError:
         print("File " + filename + "seems to be a binary file, try 'catb' special command to force print it")
     except binascii.Error:
         print("File " + filename + "b64 encoded contains start/end tokens, use something like xxd")
 
 def command_catb(command=''):
-    filename = command.split()[1]
-
-    filecontent = execute_command(request, 'base64 ' + filename)
-
-    if args.debug:
-        debug(filecontent, 'file content')
-
-    try:
-        print(b64decode(filecontent).decode('latin-1'))
-    except binascii.Error:
-        print("File " + filename + "b64 encoded contains start/end tokens, use something like xxd")
+    command_cat(command, encoding='latin-1')
 
 def command_cd(command=''):
     global cur_dir
