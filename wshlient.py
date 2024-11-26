@@ -16,7 +16,7 @@ def command_cat(command=''):
 
     filecontent = execute_command(request, 'base64 ' + filename)
 
-    print(base64.b64decode(filecontent).decode().strip())
+    print(base64.b64decode(filecontent).decode())
 
 def command_cd(command=''):
     global cur_dir
@@ -39,15 +39,41 @@ def command_cd(command=''):
 def command_clear(null=''):
     os.system("clear")
 
+def command_download(command=''):
+    filename = command.split()[1]
+
+    filecontent = execute_command(request, 'base64 ' + filename)
+    filecontent = base64.b64decode(filecontent).strip()
+
+    with open(filename, 'wb') as f:
+        f.write(filecontent)
+
+    print('File ' + filename + ' downloaded')
+
 def command_exit(null=''):
     print("\nExiting...")
     exit()
+
+def command_upload(command=''):
+    filename = command.split()[1]
+
+    with open(filename, 'rb') as f:
+        filecontent = f.read()
+
+    filecontent = base64.b64encode(filecontent).decode()
+
+    execute_command(request, 'echo -n "' + filecontent + '" | base64 -d > ' +
+                    filename)
+
+    print('File ' + filename + ' uploaded')
 
 COMMANDS = {
     'cat': command_cat,
     'cd': command_cd,
     'clear': command_clear,
-    'exit': command_exit
+    'download': command_download,
+    'exit': command_exit,
+    'upload': command_upload
 }
 
 def special_commands(command):
