@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import base64
 import os
 import readline
 import requests
@@ -9,6 +10,13 @@ import urllib
 def debug(string, msg='Debug'):
     print("[~] " + msg + ": ", end='')
     print(string)
+
+def command_cat(command=''):
+    filename = command.split()[1]
+
+    filecontent = execute_command(request, 'base64 ' + filename)
+
+    print(base64.b64decode(filecontent).decode().strip())
 
 def command_cd(command=''):
     global cur_dir
@@ -36,6 +44,7 @@ def command_exit(null=''):
     exit()
 
 COMMANDS = {
+    'cat': command_cat,
     'cd': command_cd,
     'clear': command_clear,
     'exit': command_exit
