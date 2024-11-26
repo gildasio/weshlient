@@ -4,6 +4,7 @@ import argparse
 import os
 import readline
 import requests
+import urllib
 
 def command_clear(null=''):
     os.system("clear")
@@ -67,6 +68,9 @@ def execute_command(request, command):
     elif command.split()[0] in COMMANDS:
         special_commands(command)
     else:
+        if not args.no_url_encode:
+            command = urllib.parse.quote_plus(command)
+
         req = request.copy()
         if req['inject'] == 'headers':
             req['headers'] = request['headers'].copy()
@@ -88,6 +92,10 @@ def execute_command(request, command):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("req", help="File containing raw http request", type=str)
+
+    parser.add_argument("-ne", "--no-url-encode", action="store_true",
+                        help="Disable command URL encode",
+                        default=False)
 
     parser.add_argument("-it", "--injection-token", type=str,
                         help="Token to be replaced by commands (default: INJECT)",
