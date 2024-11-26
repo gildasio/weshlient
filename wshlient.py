@@ -6,6 +6,10 @@ import readline
 import requests
 import urllib
 
+def debug(string, msg='Debug'):
+    print("[~] " + msg + ": ", end='')
+    print(string)
+
 def command_clear(null=''):
     os.system("clear")
 
@@ -85,6 +89,9 @@ def execute_command(request, command):
                 req[req['inject']].replace(args.injection_token.encode(),
                                            command.encode())
 
+        if args.debug:
+            debug(req, msg='Request')
+
         r = requests.request(req['method'],
                              req['url'],
                              headers=req['headers'],
@@ -103,6 +110,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("req", help="File containing raw http request", type=str)
 
+    parser.add_argument("-d", "--debug", action="store_true",
+                        help="Enable debug output",
+                        default=False)
     parser.add_argument("-i", "--ifs", action="store_true",
                         help="Replaces whitespaces with $IFS",
                         default=False)
