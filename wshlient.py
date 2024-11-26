@@ -68,6 +68,9 @@ def execute_command(request, command):
     elif command.split()[0] in COMMANDS:
         special_commands(command)
     else:
+        if args.ifs:
+            command = command.replace(' ', '$IFS')
+
         if not args.no_url_encode:
             command = urllib.parse.quote_plus(command)
 
@@ -100,6 +103,9 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("req", help="File containing raw http request", type=str)
 
+    parser.add_argument("-i", "--ifs", action="store_true",
+                        help="Replaces whitespaces with $IFS",
+                        default=False)
     parser.add_argument("-ne", "--no-url-encode", action="store_true",
                         help="Disable command URL encode",
                         default=False)
