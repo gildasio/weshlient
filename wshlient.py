@@ -87,7 +87,14 @@ def execute_command(request, command):
                              headers=req['headers'],
                              data=req['body'],
                              params=req['params'])
-        print(r.text, end='')
+
+        output = r.text
+        if args.start_token:
+            output = output[output.find(args.start_token)+len(args.start_token):]
+        if args.end_token:
+            output = output[:output.find(args.end_token)]
+
+        print(output, end='')
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -100,6 +107,12 @@ if __name__ == "__main__":
     parser.add_argument("-it", "--injection-token", type=str,
                         help="Token to be replaced by commands (default: INJECT)",
                         default='INJECT')
+    parser.add_argument("-st", "--start-token", type=str,
+                        help="Token that marks the output beginning",
+                        default=False)
+    parser.add_argument("-et", "--end-token", type=str,
+                        help="Token that marks the output ending",
+                        default=False)
 
     args = parser.parse_args()
 
